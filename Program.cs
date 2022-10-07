@@ -61,7 +61,7 @@ namespace AquanoxRePAK
 
 
             //Install mods
-            if (args.Contains("-i"))
+            if (args.Contains("-i") || args.Length == 0)
             {
                 InstallMods();
             }
@@ -146,7 +146,6 @@ namespace AquanoxRePAK
                     PrintHelp();
                 }
             }
-
         }
 
 
