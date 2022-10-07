@@ -33,3 +33,6 @@ Aquanox 2<br>
 Double click on AquanoxRePAK.exe to install your mods<br>
 Launch AquaNox!
 
+Special thanks to the creators of AquaNoxMarkUnPAK for releasing their source code.<br> 
+Without it I would not have been able to figure out how the Encryption works.
+
