@@ -17,28 +17,28 @@ namespace AquanoxRePAK
 
 
 
-
+        //Details for .pak file format were taken from AquanoxMarkUnPAK by jTommy
 
 
 
         ///////////////////// Keys //////////////////////
         // To be used for Pak file decryption
 
-        public static byte[] Aquanox1Key = {
+        internal static byte[] Aquanox1Key = {
             0x68, 0x3c, 0x61, 0x37, 0x4c, 0x6c, 0xc4, 0x4f, 0x6f, 0x72, 0x78, 0x48, 0x33, 0x4a, 0x2b, 0x78,
             0xdc, 0xdf, 0x61, 0x62, 0x4b, 0x6e, 0x29, 0x6a, 0x73, 0x6c, 0x6e, 0x44, 0x6f, 0x4a, 0x44, 0x66,
             0x68, 0x44, 0x33, 0x37, 0x66, 0x55, 0x67, 0x4f, 0x6f, 0xd6, 0x78, 0x48, 0x33, 0x58, 0x32, 0x78,
             0x35, 0x41, 0x61, 0x35, 0x51, 0x37, 0x6e, 0x2a, 0xf6, 0x6c, 0x2b, 0xfc, 0x6f, 0x4a, 0x23, 0x40
         };
 
-        public static byte[] Aquanox2Key = {
+        internal static byte[] Aquanox2Key = {
             0x68, 0x3c, 0x61, 0x37, 0x4c, 0x6c, 0xc4, 0x4f, 0x6f, 0x72, 0x78, 0x48, 0x33, 0x4a, 0x2b, 0x78,
             0xdc, 0xdf, 0x61, 0x62, 0x4b, 0x6e, 0x29, 0x6a, 0x73, 0x6c, 0x6e, 0x44, 0x6f, 0x4a, 0x44, 0x66,
             0x68, 0x44, 0x33, 0x37, 0x66, 0x55, 0x67, 0x4f, 0x6f, 0xd6, 0x78, 0x48, 0x33, 0x58, 0x32, 0x78,
             0x35, 0x41, 0x61, 0x35, 0x51, 0x37, 0x6e, 0x2a, 0xf6, 0x6c, 0x2b, 0xfc, 0x6f, 0x4a, 0x23, 0x40
         };
 
-        public static byte[] Aquamark3Key = {
+        internal static byte[] Aquamark3Key = {
             0x70, 0x4a, 0x4b, 0x6a, 0x33, 0x77, 0x34, 0x44, 0x6f, 0x4d, 0x3b, 0x27, 0x44, 0x27, 0x53, 0x44,
             0x36, 0x64, 0x6b, 0x6e, 0x6c, 0x3d, 0x36, 0x63, 0x41, 0x4a, 0x20, 0x53, 0x58, 0x63, 0x49, 0x41,
             0x21, 0x59, 0x33, 0x34, 0x35, 0x53, 0x6f, 0x67, 0x24, 0xa3, 0x25, 0x53, 0x4e, 0x64, 0x36, 0x40,
@@ -47,12 +47,12 @@ namespace AquanoxRePAK
 
 
 
-        
+
 
 
 
         //////////////////// Structs ///////////////////////
-        public struct FileHeader
+        internal struct FileHeader
         {
             public string magicBytes;
 
@@ -79,7 +79,7 @@ namespace AquanoxRePAK
         }
 
 
-        public struct EncryptedFileDetails
+        internal struct EncryptedFileDetails
         {
             public byte[] FileName;
             public byte[] FileSize;
@@ -92,7 +92,7 @@ namespace AquanoxRePAK
         }
 
 
-        public struct FileDetails
+        internal struct FileDetails
         {
             public string FileName;
             public uint FileSize;
@@ -120,7 +120,7 @@ namespace AquanoxRePAK
         /// </summary>
         /// <param name="_file">Filestream of pak file</param>
         /// <returns>PakFileHeader, struct with header information</returns>
-        public static FileHeader ReadHeader(FileStream _file)
+        internal static FileHeader ReadHeader(FileStream _file)
         {
             FileHeader header = new FileHeader();
 
@@ -171,7 +171,7 @@ namespace AquanoxRePAK
         /// </summary>
         /// <param name="_file">File stream of pak file, read position must be at start of file table</param>
         /// <returns></returns>
-        public static EncryptedFileDetails[] ReadFileTable(FileStream _file, FileHeader header)
+        internal static EncryptedFileDetails[] ReadFileTable(FileStream _file, FileHeader header)
         {
             EncryptedFileDetails[] fileTable = new EncryptedFileDetails[header.fileCount];
 
@@ -201,7 +201,7 @@ namespace AquanoxRePAK
 
 
 
-        public static FileDetails[] DecryptFileTable(EncryptedFileDetails[] _encryptedFileTable, FileHeader _header)
+        internal static FileDetails[] DecryptFileTable(EncryptedFileDetails[] _encryptedFileTable, FileHeader _header)
         {
             //Iterates over all encrypted file details
             //Decrypts name and size of each entry in file details
@@ -307,7 +307,7 @@ namespace AquanoxRePAK
 
 
 
-        public static EncryptedFileDetails[] EncryptFileTable(FileDetails[] _fileTable, FileHeader _header)
+        internal static EncryptedFileDetails[] EncryptFileTable(FileDetails[] _fileTable, FileHeader _header)
         {
 
             EncryptedFileDetails[] encryptedFileTable = new EncryptedFileDetails[_fileTable.Length];
@@ -414,7 +414,7 @@ namespace AquanoxRePAK
         /// </summary>
         /// <param name="_fileDetails"></param>
         /// <param name="_file"></param>
-        public static void ExtractFile(FileDetails _fileDetails, FileStream _file, string _targetDirectory)
+        internal static void ExtractFile(FileDetails _fileDetails, FileStream _file, string _targetDirectory)
         {
 
             ////////Read file contents
@@ -448,7 +448,7 @@ namespace AquanoxRePAK
         /// <param name="_sourceDirectory"></param>
         /// <param name="_targetFileName"></param>
         /// <param name="_targetGame"></param>
-        public static uint PackFolder(string _sourceDirectory, string _targetFileName, int _targetGame)
+        internal static uint PackFolder(string _sourceDirectory, string _targetFileName, int _targetGame)
         {
             //Function Variables
             DirectoryInfo sourceDirectory = new DirectoryInfo(_sourceDirectory);
@@ -558,7 +558,6 @@ namespace AquanoxRePAK
 
 
 
-        
 
 
 
@@ -569,7 +568,8 @@ namespace AquanoxRePAK
 
 
 
-        public static DirectoryInfo GetPakFolder(string _installFolder)
+
+        internal static DirectoryInfo GetPakFolder(string _installFolder)
         {
             DirectoryInfo aquanox1PakFolder = new DirectoryInfo(_installFolder + "\\dat\\pak");
             DirectoryInfo aquanox2PakFolder = new DirectoryInfo(_installFolder + "\\pak");

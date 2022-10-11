@@ -1,6 +1,9 @@
 ﻿
 
+using System;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using Microsoft.VisualBasic.FileIO;
 
 
@@ -215,7 +218,7 @@ namespace AquanoxRePAK
 
             //Get all folders and variables that we can at the start
             DirectoryInfo pwd = new DirectoryInfo(Directory.GetCurrentDirectory());
-            Utils.Game game = Pak.GetGameFromInstallFolder(pwd.FullName);
+            Utils.Game game = Utils.GetGameFromInstallFolder(pwd.FullName);
 
             DirectoryInfo pakFolder = Pak.GetPakFolder(pwd.FullName);
             if (!pakFolder.Exists) Utils.PrintError("Could not find pak folder!, is AquanoxRePAK in the install directory?");
@@ -233,11 +236,11 @@ namespace AquanoxRePAK
             //Tell user which game we found
             if (game == Utils.Game.Aquanox1)
             {
-                Console.WriteLine($"Found dat\\pak\\ folder! Assuming {Pak.GetGameName(game)}");
+                Console.WriteLine($"Found dat\\pak\\ folder! Assuming {Utils.GetGameName(game)}");
             }
             else if (game == Utils.Game.Aquanox2)
             {
-                Console.WriteLine($"Found pak\\ folder! Assuming {Pak.GetGameName(game)}");
+                Console.WriteLine($"Found pak\\ folder! Assuming {Utils.GetGameName(game)}");
             }
 
 
@@ -324,7 +327,7 @@ namespace AquanoxRePAK
 
             //Get all folders and variables that we can at the start
             DirectoryInfo pwd = new DirectoryInfo(Directory.GetCurrentDirectory());
-            Utils.Game game = Pak.GetGameFromInstallFolder(pwd.FullName);
+            Utils.Game game = Utils.GetGameFromInstallFolder(pwd.FullName);
             DirectoryInfo pakFolder = Pak.GetPakFolder(pwd.FullName);
             FileInfo[] pakFiles = pakFolder.GetFiles("*.pak");
             FileInfo[] bakFiles = pakFolder.GetFiles("*.bak");
@@ -374,7 +377,7 @@ namespace AquanoxRePAK
 
             pakFileHeader = Pak.ReadHeader(pakFile);
             Console.WriteLine("MagicBytes: " + pakFileHeader.magicBytes);
-            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {Pak.GetGameName(Pak.GetGameFromHeader(pakFileHeader))}");
+            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {Utils.GetGameName(Utils.GetGameFromHeader(pakFileHeader))}");
             Console.WriteLine("File Count: " + pakFileHeader.fileCount);
             Console.WriteLine("Copyright: " + pakFileHeader.copyright);
 
@@ -476,7 +479,7 @@ namespace AquanoxRePAK
 
             pakFileHeader = Pak.ReadHeader(pakFile);
             Console.WriteLine("MagicBytes: " + pakFileHeader.magicBytes);
-            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {Pak.GetGameName(Pak.GetGameFromHeader(pakFileHeader))}");
+            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {Utils.GetGameName(Utils.GetGameFromHeader(pakFileHeader))}");
             Console.WriteLine("File Count: " + pakFileHeader.fileCount);
             Console.WriteLine("Copyright: " + pakFileHeader.copyright);
 

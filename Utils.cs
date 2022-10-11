@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace AquanoxRePAK
 
         //////////////////// Enums ///////////////////////
 
-        public enum Game
+        internal enum Game
         {
             Unknown,
             Aquanox1,
@@ -47,7 +48,7 @@ namespace AquanoxRePAK
         /// </summary>
         /// <param name="_ver">Game Type</param>
         /// <returns>String of game name</returns>
-        public static string GetGameName(Utils.Game _ver)
+        internal static string GetGameName(Utils.Game _ver)
         {
 
             if (_ver == Utils.Game.Unknown) return "Unknown Game";
@@ -66,7 +67,7 @@ namespace AquanoxRePAK
         /// </summary>
         /// <param name="_header">Header of pak file</param>
         /// <returns>Game of pak file</returns>
-        public static Utils.Game GetGameFromHeader(FileHeader _header)
+        internal static Utils.Game GetGameFromHeader(FileHeader _header)
         {
             if (_header.majorVersion == 3 && _header.minorVersion == 0) return Utils.Game.Aquanox1;
             if (_header.majorVersion == 3 && _header.minorVersion == 2) return Utils.Game.Aquanox2;
@@ -80,7 +81,7 @@ namespace AquanoxRePAK
         /// Get game type by looking at the Game Installation folder
         /// </summary>
         /// <param name="_installFolder">Location where Aquanox is installed</param>
-        public static Utils.Game GetGameFromInstallFolder(string _installFolder)
+        internal static Utils.Game GetGameFromInstallFolder(string _installFolder)
         {
             DirectoryInfo aquanox1PakFolder = new DirectoryInfo(_installFolder + "\\dat\\pak");
             DirectoryInfo aquanox2PakFolder = new DirectoryInfo(_installFolder + "\\pak");

@@ -3,12 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <ApplicationIcon>cog.ico</ApplicationIcon>
     <PlatformTarget>x86</PlatformTarget>
-    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <SignAssembly>False</SignAssembly>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
