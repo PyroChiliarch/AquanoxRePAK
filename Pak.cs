@@ -7,11 +7,10 @@ using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using static PakUtils.Pak;
 
-namespace PakUtils
+namespace AquanoxRePAK
 {
-    public static class Pak
+    internal static class Pak
     {
 
 
@@ -48,15 +47,7 @@ namespace PakUtils
 
 
 
-        //////////////////// Enums ///////////////////////
-
-        public enum Game
-        {
-            Unknown,
-            Aquanox1,
-            Aquanox2,
-            AquaMark3
-        }
+        
 
 
 
@@ -136,38 +127,38 @@ namespace PakUtils
             //Read the Magic Bytes
             byte[] magicBytesData = new byte[12];
             int bytesRead = _file.Read(magicBytesData, 0, magicBytesData.Length);
-            if (bytesRead != magicBytesData.Length) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != magicBytesData.Length) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
             header.magicBytes = Encoding.ASCII.GetString(magicBytesData);
-            if (header.magicBytes != ("MASSIVEFILE" + (char)0x00)) throw new Exception("File is not a MASSIVE pak file"); //Sanity Check
+            if (header.magicBytes != ("MASSIVEFILE" + (char)0x00)) Utils.PrintError("File is not a MASSIVE pak file"); //Sanity Check
 
             //Read Major version
             byte[] fileMajorVersionData = new byte[2];
             bytesRead = _file.Read(fileMajorVersionData, 0, fileMajorVersionData.Length);
-            if (bytesRead != fileMajorVersionData.Length) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != fileMajorVersionData.Length) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
             header.majorVersion = BitConverter.ToUInt16(fileMajorVersionData);
 
             //Read Minor version
             byte[] fileMinorVersionData = new byte[2];
             bytesRead = _file.Read(fileMinorVersionData, 0, fileMinorVersionData.Length);
-            if (bytesRead != fileMinorVersionData.Length) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != fileMinorVersionData.Length) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
             header.minorVersion = BitConverter.ToUInt16(fileMinorVersionData);
 
             //Read File Count
             byte[] fileCountData = new byte[4];
             bytesRead = _file.Read(fileCountData, 0, fileCountData.Length);
-            if (bytesRead != fileCountData.Length) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != fileCountData.Length) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
             header.fileCount = BitConverter.ToUInt32(fileCountData);
 
             //Read Copyright data
             byte[] copyrightData = new byte[60];
             bytesRead = _file.Read(copyrightData, 0, copyrightData.Length);
-            if (bytesRead != copyrightData.Length) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != copyrightData.Length) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
             header.copyright = Encoding.ASCII.GetString(copyrightData);
 
             //Read Unknown String
             byte[] lptData = new byte[4];
             bytesRead = _file.Read(lptData, 0, lptData.Length);
-            if (bytesRead != lptData.Length) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != lptData.Length) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
             header.lpt = Encoding.ASCII.GetString(lptData);
 
             return header;
@@ -191,10 +182,10 @@ namespace PakUtils
                 fileTable[i] = new EncryptedFileDetails();
 
                 int bytesRead = _file.Read(fileTable[i].FileName, 0, 128); //128 is the filename length
-                if (bytesRead != 128) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+                if (bytesRead != 128) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
 
                 bytesRead = _file.Read(fileTable[i].FileSize, 0, 4); //128 is the fileSize length
-                if (bytesRead != 4) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+                if (bytesRead != 4) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
 
 
                 
@@ -218,7 +209,7 @@ namespace PakUtils
 
             
             FileDetails[] fileTable = new FileDetails[_encryptedFileTable.Length];
-            Game game = GetGameFromHeader(_header); //Different gamea require different methods to decrypt
+            Utils.Game game = Utils.GetGameFromHeader(_header); //Different gamea require different methods to decrypt
 
 
             
@@ -249,17 +240,18 @@ namespace PakUtils
 
 
                     //Get Key byte for decryption
-                    if (game == Game.Aquanox1)
+                    if (game == Utils.Game.Aquanox1)
                     {
                         nameKey = Aquanox1Key[(c + i) % Aquanox1Key.Length];
                     }
-                    else if (game == Game.Aquanox2)
+                    else if (game == Utils.Game.Aquanox2)
                     {
                         nameKey = Aquanox2Key[(c + i + 61) % Aquanox2Key.Length]; //61 is the offset specific to getting the key for decypting Aquanox2 file names
                     }
                     else
                     {
-                        throw new Exception($"Cannot Decrypt file name in pak file of {GetGameName(game)}");
+                        nameKey = 0; //Dummy value
+                        Utils.PrintError($"Cannot Decrypt file name in pak file of {Utils.GetGameName(game)}");
                     }
 
 
@@ -289,17 +281,18 @@ namespace PakUtils
                 //////////////////Decypt Filesize
                 //Get the key for decrypting file size
                 uint fileSizeKey;
-                if (game == Game.Aquanox1)
+                if (game == Utils.Game.Aquanox1)
                 {
                     fileSizeKey = BitConverter.ToUInt32(Aquanox1Key, i % (Aquanox1Key.Length - 4));
                 }
-                else if (game == Game.Aquanox2)
+                else if (game == Utils.Game.Aquanox2)
                 {
                     fileSizeKey = BitConverter.ToUInt32(Aquanox2Key, (i + 41) % (Aquanox2Key.Length - 4)); //41 is the offset specific to getting the key for decypting Aquanox2 file sizes
                 }
                 else
                 {
-                    throw new Exception($"Cannot Decrypt file size in pak file of {GetGameName(game)}");
+                    fileSizeKey = 0; //Dummy Value
+                    Utils.PrintError($"Cannot Decrypt file size in pak file of {Utils.GetGameName(game)}");
                 }
 
                 //Decrypt file size
@@ -318,7 +311,7 @@ namespace PakUtils
         {
 
             EncryptedFileDetails[] encryptedFileTable = new EncryptedFileDetails[_fileTable.Length];
-            Game game = GetGameFromHeader(_header);
+            Utils.Game game = Utils.GetGameFromHeader(_header);
 
             //Loop file details in filetable, and encrypt each value
             for (int i = 0; i < _fileTable.Length; i++)
@@ -346,17 +339,18 @@ namespace PakUtils
                     //Not needed, only for decryption
 
                     //Get Key byte for decryption
-                    if (game == Game.Aquanox1)
+                    if (game == Utils.Game.Aquanox1)
                     {
                         nameKey = Aquanox1Key[(c + i) % Aquanox1Key.Length];
                     }
-                    else if (game == Game.Aquanox2)
+                    else if (game == Utils.Game.Aquanox2)
                     {
                         nameKey = Aquanox2Key[(c + i + 61) % Aquanox2Key.Length]; //61 is the offset specific to getting the key for decypting Aquanox2 file names
                     }
                     else
                     {
-                        throw new Exception($"Cannot Decrypt file name in pak file of {GetGameName(game)}");
+                        nameKey = 0; //Dummy value
+                        Utils.PrintError($"Cannot Decrypt file name in pak file of {Utils.GetGameName(game)}");
                     }
 
 
@@ -382,21 +376,21 @@ namespace PakUtils
 
                 //Encrypt filelength
                 uint fileSizeKey;
-                if (game == Game.Aquanox1)
+                if (game == Utils.Game.Aquanox1)
                 {
                     fileSizeKey = BitConverter.ToUInt32(Aquanox1Key, i % (Aquanox1Key.Length - 4));
                 }
-                else if (game == Game.Aquanox2)
+                else if (game == Utils.Game.Aquanox2)
                 {
                     fileSizeKey = BitConverter.ToUInt32(Aquanox2Key, (i + 41) % (Aquanox2Key.Length - 4)); //41 is the offset specific to getting the key for decypting Aquanox2 file sizes
                 }
                 else
                 {
-                    throw new Exception($"Cannot Decrypt file size in pak file of {GetGameName(game)}");
+                    fileSizeKey = 0; //Dummy value
+                    Utils.PrintError($"Cannot Decrypt file size in pak file of {Utils.GetGameName(game)}");
                 }
 
 
-                //fileTable[i].FileSize = BitConverter.ToUInt32(_encryptedFileTable[i].FileSize, 0) - fileSizeKey;
 
                 encryptedFileTable[i].FileSize = BitConverter.GetBytes(_fileTable[i].FileSize + fileSizeKey); //Reverse of decryption
 
@@ -426,7 +420,7 @@ namespace PakUtils
             ////////Read file contents
             byte[] fileContents = new byte[_fileDetails.FileSize];
             int bytesRead = _file.Read(fileContents, 0, (int)_fileDetails.FileSize);
-            if (bytesRead != (int)_fileDetails.FileSize) throw new Exception("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
+            if (bytesRead != (int)_fileDetails.FileSize) Utils.PrintError("Unexpected number of bytes read! Did the file end too soon?"); //Sanity check
 
 
             ////////Write file to disk
@@ -459,7 +453,7 @@ namespace PakUtils
             //Function Variables
             DirectoryInfo sourceDirectory = new DirectoryInfo(_sourceDirectory);
             FileInfo targetFile = new FileInfo(_targetFileName);
-            Game targetGame = (Game)_targetGame;
+            Utils.Game targetGame = (Utils.Game)_targetGame;
             byte[] nullByte = new byte[1] { 0x00 };
 
             //Variables for packing
@@ -480,18 +474,18 @@ namespace PakUtils
             header.fileCount = (uint)filesToPack.Length;
             header.copyright = "This is a modded pak - Repacking done with AquanoxRePak.exe";
             header.lpt = "LPT";
-            if (targetGame == Game.Aquanox1)
+            if (targetGame == Utils.Game.Aquanox1)
             {
 
                 header.majorVersion = 3;
                 header.minorVersion = 0;
-            } else if (targetGame == Game.Aquanox2)
+            } else if (targetGame == Utils.Game.Aquanox2)
             {
                 header.majorVersion = 3;
                 header.minorVersion = 2;
             } else
             {
-                throw new Exception ($"Cannot pack files for {GetGameName(targetGame)}");
+                Utils.PrintError($"Cannot pack files for {Utils.GetGameName(targetGame)}");
             }
 
 
@@ -564,63 +558,7 @@ namespace PakUtils
 
 
 
-        //////////////////// Utility functions ///////////////////////
-
-
-        /// <summary>
-        /// Gets the name of the game as a string
-        /// </summary>
-        /// <param name="_ver"></param>
-        /// <returns>String of game name</returns>
-        public static string GetGameName(Game _ver)
-        {
-            if (_ver == Game.Unknown) return "Unknown Game";
-            if (_ver == Game.Aquanox1) return "Aquanox 1";
-            if (_ver == Game.Aquanox2) return "Aquanox 2: Revelation";
-            if (_ver == Game.AquaMark3) return "AquaMark 3";
-            
-            throw new Exception("Code should never get here?, Could not get Game Version string");
-        }
-
-
-
-        /// <summary>
-        /// Takes the pak file header, returns which game the file is from
-        /// </summary>
-        /// <param name="_header">Header of pak file</param>
-        /// <returns>Game of pak file</returns>
-        public static Game GetGameFromHeader(FileHeader _header)
-        {
-            if (_header.majorVersion == 3 && _header.minorVersion == 0) return Game.Aquanox1;
-            if (_header.majorVersion == 3 && _header.minorVersion == 2) return Game.Aquanox2;
-            if (_header.majorVersion == 3 && _header.minorVersion == 3) return Game.AquaMark3;
-            return Game.Unknown;
-        }
-
-
-
-
-        public static Game GetGameFromInstallFolder(string _installFolder)
-        {
-            DirectoryInfo aquanox1PakFolder = new DirectoryInfo(_installFolder + "\\dat\\pak");
-            DirectoryInfo aquanox2PakFolder = new DirectoryInfo(_installFolder + "\\pak");
-
-            //These values are set depending on detected folders below
-            Game game = Game.Unknown;
-
-
-
-            if (aquanox1PakFolder.Exists)
-            {
-                game = Game.Aquanox1;
-            }
-            else if (aquanox2PakFolder.Exists)
-            {
-                game = Game.Aquanox2;
-            }
-
-            return game;
-        }
+        
 
 
 

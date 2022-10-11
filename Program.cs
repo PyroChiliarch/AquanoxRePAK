@@ -1,7 +1,8 @@
-﻿using PakUtils;
-using static PakUtils.Pak;
+﻿
+
 using System.IO.Compression;
 using Microsoft.VisualBasic.FileIO;
+
 
 namespace AquanoxRePAK
 {
@@ -14,6 +15,7 @@ namespace AquanoxRePAK
         //
         // Main                  - Just Handles Command line args
         // Print Help            - Prints help
+        // Print Error           - Prints error message
         // Arg Functions         - Functions to handle command line arguments, one for each command line option
         //
 
@@ -192,7 +194,7 @@ namespace AquanoxRePAK
 
 
 
-
+        
 
 
 
@@ -213,9 +215,15 @@ namespace AquanoxRePAK
 
             //Get all folders and variables that we can at the start
             DirectoryInfo pwd = new DirectoryInfo(Directory.GetCurrentDirectory());
-            Game game = GetGameFromInstallFolder(pwd.FullName);
+            Utils.Game game = Pak.GetGameFromInstallFolder(pwd.FullName);
+
+            DirectoryInfo pakFolder = Pak.GetPakFolder(pwd.FullName);
+            if (!pakFolder.Exists) Utils.PrintError("Could not find pak folder!, is AquanoxRePAK in the install directory?");
+
             DirectoryInfo modFolder = new DirectoryInfo("mods");
-            DirectoryInfo pakFolder = GetPakFolder(pwd.FullName);
+            if (!modFolder.Exists) Utils.PrintError("Could not find mods folder!, please create mod folder and place mods in it.");
+
+            
             FileInfo[] modFiles = modFolder.GetFiles();
             FileInfo[] pakFiles = pakFolder.GetFiles("*.pak");
 
@@ -223,13 +231,13 @@ namespace AquanoxRePAK
             
             
             //Tell user which game we found
-            if (game == Game.Aquanox1)
+            if (game == Utils.Game.Aquanox1)
             {
-                Console.WriteLine($"Found dat\\pak\\ folder! Assuming {GetGameName(game)}");
+                Console.WriteLine($"Found dat\\pak\\ folder! Assuming {Pak.GetGameName(game)}");
             }
-            else if (game == Game.Aquanox2)
+            else if (game == Utils.Game.Aquanox2)
             {
-                Console.WriteLine($"Found pak\\ folder! Assuming {GetGameName(game)}");
+                Console.WriteLine($"Found pak\\ folder! Assuming {Pak.GetGameName(game)}");
             }
 
 
@@ -237,10 +245,10 @@ namespace AquanoxRePAK
 
             //Lots of error checking, The install command is a basic command and the user may not be familiar with the tool or command lines
             //Want to make sure we give them lots of information to figure things out
-            if (game == Game.Unknown) throw new Exception("Unknown game install folder! Did you place the tool in an install folder?");
-            if (!modFolder.Exists) throw new Exception("Mods folder does not exits! Please create a mods folder or check you spelling!");
-            if (modFiles.Length == 0) throw new Exception("No mods in mod folder, check mods folder is not empty!");
-            if (pakFiles.Length == 0) throw new Exception("Cannot find pak files, this is bad, try option -r to revert or verify integrity of game files in steam");
+            if (game == Utils.Game.Unknown) Utils.PrintError("Unknown game install folder! Did you place the tool in an install folder?");
+            if (!modFolder.Exists) Utils.PrintError("Mods folder does not exits! Please create a mods folder or check you spelling!");
+            if (modFiles.Length == 0) Utils.PrintError("No mods in mod folder, check mods folder is not empty!");
+            if (pakFiles.Length == 0) Utils.PrintError("Cannot find pak files, this is bad, try option -r to revert or verify integrity of game files in steam");
 
 
             //Unpack pak files
@@ -316,8 +324,8 @@ namespace AquanoxRePAK
 
             //Get all folders and variables that we can at the start
             DirectoryInfo pwd = new DirectoryInfo(Directory.GetCurrentDirectory());
-            Game game = GetGameFromInstallFolder(pwd.FullName);
-            DirectoryInfo pakFolder = GetPakFolder(pwd.FullName);
+            Utils.Game game = Pak.GetGameFromInstallFolder(pwd.FullName);
+            DirectoryInfo pakFolder = Pak.GetPakFolder(pwd.FullName);
             FileInfo[] pakFiles = pakFolder.GetFiles("*.pak");
             FileInfo[] bakFiles = pakFolder.GetFiles("*.bak");
 
@@ -355,18 +363,18 @@ namespace AquanoxRePAK
             //Variables used
             FileInfo pakFileInfo = new FileInfo(_targetPakFile);           //Target .pak file
             FileStream pakFile = new FileStream(pakFileInfo.Name, FileMode.Open, FileAccess.Read); //Open target pack file for reading
-            FileHeader pakFileHeader = new FileHeader();    //Holds variables found in the header after its read
-            EncryptedFileDetails[] encryptedFileTable;          //The is read after the header, needs to be decrypted for use
-            FileDetails[] fileTable;                            //After decryption, can be used to extract files from .pak
+            Pak.FileHeader pakFileHeader = new Pak.FileHeader();    //Holds variables found in the header after its read
+            Pak.EncryptedFileDetails[] encryptedFileTable;          //The is read after the header, needs to be decrypted for use
+            Pak.FileDetails[] fileTable;                            //After decryption, can be used to extract files from .pak
 
 
 
 
             ////////////////////////// Read the head of the file ////////////////////////////
 
-            pakFileHeader = ReadHeader(pakFile);
+            pakFileHeader = Pak.ReadHeader(pakFile);
             Console.WriteLine("MagicBytes: " + pakFileHeader.magicBytes);
-            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {GetGameName(GetGameFromHeader(pakFileHeader))}");
+            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {Pak.GetGameName(Pak.GetGameFromHeader(pakFileHeader))}");
             Console.WriteLine("File Count: " + pakFileHeader.fileCount);
             Console.WriteLine("Copyright: " + pakFileHeader.copyright);
 
@@ -375,7 +383,7 @@ namespace AquanoxRePAK
 
             Console.Write("Grabbing File Table: ");
             //Read The Data
-            encryptedFileTable = ReadFileTable(pakFile, pakFileHeader);
+            encryptedFileTable = Pak.ReadFileTable(pakFile, pakFileHeader);
             //filetable read complete
             Console.WriteLine("Done");
 
@@ -385,13 +393,13 @@ namespace AquanoxRePAK
             //////////////////////////////// Decrpyt File Table ///////////////////////////
 
             Console.Write("Decrypting File Table: ");
-            fileTable = DecryptFileTable(encryptedFileTable, pakFileHeader);
+            fileTable = Pak.DecryptFileTable(encryptedFileTable, pakFileHeader);
             //Decryption Complete
             Console.WriteLine("Done");
 
 
             ////////////////////////////// Print Results ///////////////////////////
-            foreach (FileDetails file in fileTable)
+            foreach (Pak.FileDetails file in fileTable)
             {
                 Console.WriteLine($"Filename: {file.FileName} \t\t Bytes:{file.FileSize}");
             }
@@ -457,18 +465,18 @@ namespace AquanoxRePAK
             //Variables used
             FileInfo pakFileInfo = new FileInfo(_targetPakFile);           //Target .pak file
             FileStream pakFile = new FileStream(pakFileInfo.FullName, FileMode.Open, FileAccess.Read); //Open target pack file for reading
-            FileHeader pakFileHeader = new FileHeader();    //Holds variables found in the header after its read
-            EncryptedFileDetails[] encryptedFileTable;          //The is read after the header, needs to be decrypted for use
-            FileDetails[] fileTable;                            //After decryption, can be used to extract files from .pak
+            Pak.FileHeader pakFileHeader = new Pak.FileHeader();    //Holds variables found in the header after its read
+            Pak.EncryptedFileDetails[] encryptedFileTable;          //The is read after the header, needs to be decrypted for use
+            Pak.FileDetails[] fileTable;                            //After decryption, can be used to extract files from .pak
 
 
 
 
             ////////////////////////// Read the head of the file ////////////////////////////
 
-            pakFileHeader = ReadHeader(pakFile);
+            pakFileHeader = Pak.ReadHeader(pakFile);
             Console.WriteLine("MagicBytes: " + pakFileHeader.magicBytes);
-            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {GetGameName(GetGameFromHeader(pakFileHeader))}");
+            Console.WriteLine($"File Version: v{pakFileHeader.majorVersion}.{pakFileHeader.minorVersion} - {Pak.GetGameName(Pak.GetGameFromHeader(pakFileHeader))}");
             Console.WriteLine("File Count: " + pakFileHeader.fileCount);
             Console.WriteLine("Copyright: " + pakFileHeader.copyright);
 
@@ -477,7 +485,7 @@ namespace AquanoxRePAK
 
             Console.Write("Grabbing File Table: ");
             //Read The Data
-            encryptedFileTable = ReadFileTable(pakFile, pakFileHeader);
+            encryptedFileTable = Pak.ReadFileTable(pakFile, pakFileHeader);
             //filetable read complete
             Console.WriteLine("Done");
 
@@ -487,7 +495,7 @@ namespace AquanoxRePAK
             //////////////////////////////// Decrpyt File Table ///////////////////////////
 
             Console.Write("Decrypting File Table: ");
-            fileTable = DecryptFileTable(encryptedFileTable, pakFileHeader);
+            fileTable = Pak.DecryptFileTable(encryptedFileTable, pakFileHeader);
             //Decryption Complete
             Console.WriteLine("Done");
 
@@ -502,7 +510,7 @@ namespace AquanoxRePAK
             //Loop over all files and extract them
             for (int i = 0; i < pakFileHeader.fileCount; i++)
             {
-                ExtractFile(fileTable[i], pakFile, extractFilesDirectory);
+                Pak.ExtractFile(fileTable[i], pakFile, extractFilesDirectory);
             }
             Console.WriteLine("Done");
 
