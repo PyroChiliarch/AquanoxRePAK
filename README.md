@@ -6,6 +6,8 @@
 
 **Skip to the bottom of the readme for simple install instructions**<br>
 
+**Background of how this tool was built can be found here > https://pyrochiliarch.com/2022/11/20/down-the-rabbit-hole-aquanox/**
+
 This tool allows easy mod installs and the ability to revert back to vanilla.with a single command<br>
 ```.\AquanoxRePAK.exe -i```<br>
 ![image](https://user-images.githubusercontent.com/11240849/194455120-8d9a33ce-a039-479a-9877-c57738380b5f.png)<br>
